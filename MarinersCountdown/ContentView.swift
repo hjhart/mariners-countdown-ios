@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var springTrainingCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getGameDate())
     @State private var openingDayCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getOpeningDayDate())
+    @State private var allStarCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getAllStarGameDate())
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -10,23 +10,23 @@ struct ContentView: View {
         ScrollView {
             VStack(spacing: 40) {
                 VStack(spacing: 15) {
-                    Text("Spring Training Start")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.secondary)
-                    
-                    CountdownView(countdown: springTrainingCountdown, title: "Mariners Spring Training", date: "February 20, 2026")
-                }
-                
-                Divider()
-                
-                VStack(spacing: 15) {
                     Text("Regular Season Opener")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.secondary)
-                    
+
                     CountdownView(countdown: openingDayCountdown, title: "Mariners vs Guardians", date: "March 26, 2026")
+                }
+
+                Divider()
+
+                VStack(spacing: 15) {
+                    Text("All-Star Break")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.secondary)
+
+                    CountdownView(countdown: allStarCountdown, title: "MLB All-Star Game", date: "July 14, 2026")
                 }
             }
             .padding(.vertical, 40)
@@ -37,8 +37,8 @@ struct ContentView: View {
     }
     
     private func refreshCountdowns() {
-        springTrainingCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getGameDate())
         openingDayCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getOpeningDayDate())
+        allStarCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getAllStarGameDate())
     }
 }
 

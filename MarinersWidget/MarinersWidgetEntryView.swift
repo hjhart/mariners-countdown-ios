@@ -27,8 +27,8 @@ struct MarinersWidgetEntryView: View {
                     .font(.caption2)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
-                
-                Text("Spring Training")
+
+                Text("Opening Day")
                     .font(.caption2)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)

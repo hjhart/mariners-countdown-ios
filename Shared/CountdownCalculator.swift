@@ -9,26 +9,12 @@ struct CountdownResult {
     let isGameDay: Bool
 }
 
-/// Shared countdown calculator for Mariners Spring Training game
+/// Shared countdown calculator for Mariners season dates
 class CountdownCalculator {
     static let shared = CountdownCalculator()
-    
+
     private init() {}
-    
-    /// Mariners first spring training game: February 20, 2026 at 12:10 PM Pacific Time
-    func getGameDate() -> Date {
-        var components = DateComponents()
-        components.year = 2026
-        components.month = 2
-        components.day = 20
-        components.hour = 12
-        components.minute = 10
-        components.timeZone = TimeZone(identifier: "America/Los_Angeles")
-        
-        let calendar = Calendar.current
-        return calendar.date(from: components)!
-    }
-    
+
     /// Mariners first regular season game: March 26, 2026 at 7:10 PM Pacific Time
     func getOpeningDayDate() -> Date {
         var components = DateComponents()
@@ -72,15 +58,24 @@ class CountdownCalculator {
         return CountdownResult(days: days, hours: hours, minutes: minutes, seconds: seconds, isGameDay: false)
     }
     
-    /// Legacy method for the app's primary countdown
-    func getFullCountdown() -> CountdownResult {
-        return getCountdown(to: getGameDate())
+    /// MLB All-Star Game: July 14, 2026 at 8:00 PM Eastern Time
+    func getAllStarGameDate() -> Date {
+        var components = DateComponents()
+        components.year = 2026
+        components.month = 7
+        components.day = 14
+        components.hour = 20
+        components.minute = 0
+        components.timeZone = TimeZone(identifier: "America/New_York")
+
+        let calendar = Calendar.current
+        return calendar.date(from: components)!
     }
-    
-    /// Calculate only days until the game from now (for the widget)
+
+    /// Calculate only days until Opening Day from now (for the widget)
     func getDaysUntilGame() -> CountdownResult {
         let now = Date()
-        let gameDate = getGameDate()
+        let gameDate = getOpeningDayDate()
         
         let calendar = Calendar.current
         
