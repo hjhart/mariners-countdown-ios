@@ -9,8 +9,8 @@ struct MarinersWidget: Widget {
             MarinersWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Mariners Countdown")
-        .description("Days until Mariners Opening Day")
+        .configurationDisplayName("Countdown")
+        .description("Days until your next upcoming event")
         .supportedFamilies([.systemSmall])
     }
 }

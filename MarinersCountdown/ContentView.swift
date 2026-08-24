@@ -1,56 +1,60 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var openingDayCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getOpeningDayDate())
-    @State private var allStarCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getAllStarGameDate())
-    
+    @State private var countdowns: [EventCountdown] = []
+
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 40) {
-                VStack(spacing: 15) {
-                    Text("Regular Season Opener")
+                if countdowns.isEmpty {
+                    Text("No upcoming events")
                         .font(.title2)
-                        .fontWeight(.bold)
                         .foregroundColor(.secondary)
-
-                    CountdownView(countdown: openingDayCountdown, title: "Mariners vs Guardians", date: "March 26, 2026")
-                }
-
-                Divider()
-
-                VStack(spacing: 15) {
-                    Text("All-Star Break")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.secondary)
-
-                    CountdownView(countdown: allStarCountdown, title: "MLB All-Star Game", date: "July 14, 2026")
+                        .padding(.vertical, 60)
+                } else {
+                    ForEach(countdowns) { item in
+                        CountdownView(countdown: item.result, title: item.title, date: item.dateLabel)
+                        if item.id != countdowns.last?.id {
+                            Divider()
+                        }
+                    }
                 }
             }
             .padding(.vertical, 40)
         }
-        .onReceive(timer) { _ in
-            refreshCountdowns()
+        .onAppear { refreshCountdowns() }
+        .onReceive(timer) { _ in refreshCountdowns() }
+    }
+
+    private func refreshCountdowns() {
+        countdowns = CountdownCalculator.shared.upcomingEvents.map { event in
+            EventCountdown(
+                title: event.title,
+                dateLabel: event.dateLabel,
+                result: CountdownCalculator.shared.getCountdown(to: event.date)
+            )
         }
     }
-    
-    private func refreshCountdowns() {
-        openingDayCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getOpeningDayDate())
-        allStarCountdown = CountdownCalculator.shared.getCountdown(to: CountdownCalculator.shared.getAllStarGameDate())
-    }
+}
+
+struct EventCountdown: Identifiable {
+    let id = UUID()
+    let title: String
+    let dateLabel: String
+    let result: CountdownResult
 }
 
 struct CountdownView: View {
     let countdown: CountdownResult
     let title: String
     let date: String
-    
+
     var body: some View {
         VStack(spacing: 20) {
             if countdown.isGameDay {
-                Text("Game Day!")
+                Text("Today!")
                     .font(.system(size: 36, weight: .bold))
                     .foregroundColor(.green)
             } else {
@@ -61,13 +65,13 @@ struct CountdownView: View {
                     TimeUnitView(value: countdown.seconds, unit: "secs")
                 }
                 .foregroundColor(.blue)
-                
+
                 Text(title)
                     .font(.title)
                     .fontWeight(.semibold)
                     .multilineTextAlignment(.center)
             }
-            
+
             Text(date)
                 .font(.headline)
                 .foregroundColor(.secondary)
@@ -78,7 +82,7 @@ struct CountdownView: View {
 struct TimeUnitView: View {
     let value: Int
     let unit: String
-    
+
     var body: some View {
         VStack {
             Text("\(value)")

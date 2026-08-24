@@ -3,38 +3,37 @@ import SwiftUI
 
 struct MarinersTimelineProvider: TimelineProvider {
     func placeholder(in context: Context) -> MarinersWidgetEntry {
-        MarinersWidgetEntry(date: Date(), countdown: CountdownCalculator.shared.getDaysUntilGame())
+        MarinersWidgetEntry(
+            date: Date(),
+            countdown: CountdownCalculator.shared.getDaysUntilNextEvent(),
+            eventTitle: CountdownCalculator.shared.nextUpcomingEvent?.title ?? "Upcoming Event"
+        )
     }
 
     func getSnapshot(in context: Context, completion: @escaping (MarinersWidgetEntry) -> ()) {
-        let entry = MarinersWidgetEntry(date: Date(), countdown: CountdownCalculator.shared.getDaysUntilGame())
-        completion(entry)
+        completion(MarinersWidgetEntry(
+            date: Date(),
+            countdown: CountdownCalculator.shared.getDaysUntilNextEvent(),
+            eventTitle: CountdownCalculator.shared.nextUpcomingEvent?.title ?? "Upcoming Event"
+        ))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<MarinersWidgetEntry>) -> ()) {
-        var entries: [MarinersWidgetEntry] = []
-        
-        let currentDate = Date()
-        let countdown = CountdownCalculator.shared.getDaysUntilGame()
-        
-        // Create entry for current time
-        let entry = MarinersWidgetEntry(date: currentDate, countdown: countdown)
-        entries.append(entry)
-        
-        // Schedule next update in 1 hour
-        let calendar = Calendar.current
-        if let nextUpdate = calendar.date(byAdding: .hour, value: 1, to: currentDate) {
-            let timeline = Timeline(entries: entries, policy: .after(nextUpdate))
-            completion(timeline)
-        } else {
-            // Fallback: update after 1 hour
-            let timeline = Timeline(entries: entries, policy: .after(Date(timeIntervalSinceNow: 3600)))
-            completion(timeline)
-        }
+        let entry = MarinersWidgetEntry(
+            date: Date(),
+            countdown: CountdownCalculator.shared.getDaysUntilNextEvent(),
+            eventTitle: CountdownCalculator.shared.nextUpcomingEvent?.title ?? "Upcoming Event"
+        )
+
+        let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: Date())
+            ?? Date(timeIntervalSinceNow: 3600)
+        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
+        completion(timeline)
     }
 }
 
 struct MarinersWidgetEntry: TimelineEntry {
     let date: Date
     let countdown: CountdownResult
+    let eventTitle: String
 }

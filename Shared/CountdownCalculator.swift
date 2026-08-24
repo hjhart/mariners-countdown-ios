@@ -9,94 +9,87 @@ struct CountdownResult {
     let isGameDay: Bool
 }
 
-/// Shared countdown calculator for Mariners season dates
+/// A named event with a target date
+struct CountdownEvent {
+    let title: String
+    let date: Date
+    let dateLabel: String
+}
+
+/// Shared countdown calculator
 class CountdownCalculator {
     static let shared = CountdownCalculator()
 
     private init() {}
 
-    /// Mariners first regular season game: March 26, 2026 at 7:10 PM Pacific Time
-    func getOpeningDayDate() -> Date {
+    private static func makeEvent(title: String, month: Int, day: Int, hour: Int = 9, minute: Int = 0, label: String) -> CountdownEvent {
         var components = DateComponents()
         components.year = 2026
-        components.month = 3
-        components.day = 26
-        components.hour = 19
-        components.minute = 10
+        components.month = month
+        components.day = day
+        components.hour = hour
+        components.minute = minute
         components.timeZone = TimeZone(identifier: "America/Los_Angeles")
-        
-        let calendar = Calendar.current
-        return calendar.date(from: components)!
+        let date = Calendar.current.date(from: components)!
+        return CountdownEvent(title: title, date: date, dateLabel: label)
     }
-    
-    /// Calculate days, hours, minutes, and seconds until a specific date
+
+    static let allEvents: [CountdownEvent] = [
+        makeEvent(title: "Boy's Trip", month: 10, day: 22, label: "October 22, 2026"),
+        makeEvent(title: "Henry's Birthday", month: 11, day: 20, label: "November 20, 2026"),
+        makeEvent(title: "November 22nd", month: 11, day: 22, label: "November 22, 2026"),
+        makeEvent(title: "Christmas Holiday", month: 12, day: 27, label: "December 27, 2026"),
+    ]
+
+    var upcomingEvents: [CountdownEvent] {
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        return Self.allEvents.filter { Calendar.current.startOfDay(for: $0.date) >= startOfToday }
+    }
+
+    var nextUpcomingEvent: CountdownEvent? {
+        upcomingEvents.first
+    }
+
     func getCountdown(to targetDate: Date) -> CountdownResult {
         let now = Date()
         let calendar = Calendar.current
-        
-        // Get start of day for both dates to check if it's game day
+
         let startOfToday = calendar.startOfDay(for: now)
         let startOfTargetDay = calendar.startOfDay(for: targetDate)
-        
-        // If it's already game day (calendar day wise)
-        if now >= targetDate || calendar.isDate(startOfToday, inSameDayAs: startOfTargetDay) {
+
+        if calendar.isDate(startOfToday, inSameDayAs: startOfTargetDay) {
             return CountdownResult(days: 0, hours: 0, minutes: 0, seconds: 0, isGameDay: true)
         }
-        
-        // Calculate days, hours, minutes, seconds between
-        let components = calendar.dateComponents([.day, .hour, .minute, .second], from: now, to: targetDate)
-        let days = components.day ?? 0
-        let hours = components.hour ?? 0
-        let minutes = components.minute ?? 0
-        let seconds = components.second ?? 0
-        
-        // If game date has passed, show all 0
+
         if now > targetDate {
             return CountdownResult(days: 0, hours: 0, minutes: 0, seconds: 0, isGameDay: false)
         }
-        
-        return CountdownResult(days: days, hours: hours, minutes: minutes, seconds: seconds, isGameDay: false)
-    }
-    
-    /// MLB All-Star Game: July 14, 2026 at 8:00 PM Eastern Time
-    func getAllStarGameDate() -> Date {
-        var components = DateComponents()
-        components.year = 2026
-        components.month = 7
-        components.day = 14
-        components.hour = 20
-        components.minute = 0
-        components.timeZone = TimeZone(identifier: "America/New_York")
 
-        let calendar = Calendar.current
-        return calendar.date(from: components)!
+        let components = calendar.dateComponents([.day, .hour, .minute, .second], from: now, to: targetDate)
+        return CountdownResult(
+            days: components.day ?? 0,
+            hours: components.hour ?? 0,
+            minutes: components.minute ?? 0,
+            seconds: components.second ?? 0,
+            isGameDay: false
+        )
     }
 
-    /// Calculate only days until Opening Day from now (for the widget)
-    func getDaysUntilGame() -> CountdownResult {
-        let now = Date()
-        let gameDate = getOpeningDayDate()
-        
-        let calendar = Calendar.current
-        
-        // Get start of day for both dates to compare days (not hours)
-        let startOfToday = calendar.startOfDay(for: now)
-        let startOfGameDay = calendar.startOfDay(for: gameDate)
-        
-        // Check if it's game day
-        if calendar.isDate(startOfToday, inSameDayAs: startOfGameDay) {
-            return CountdownResult(days: 0, hours: 0, minutes: 0, seconds: 0, isGameDay: true)
-        }
-        
-        // Calculate days between
-        let components = calendar.dateComponents([.day], from: startOfToday, to: startOfGameDay)
-        let days = components.day ?? 0
-        
-        // If game date has passed, show 0 days (but not game day)
-        if days < 0 {
+    func getDaysUntilNextEvent() -> CountdownResult {
+        guard let next = nextUpcomingEvent else {
             return CountdownResult(days: 0, hours: 0, minutes: 0, seconds: 0, isGameDay: false)
         }
-        
-        return CountdownResult(days: days, hours: 0, minutes: 0, seconds: 0, isGameDay: false)
+        let now = Date()
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: now)
+        let startOfEventDay = calendar.startOfDay(for: next.date)
+
+        if calendar.isDate(startOfToday, inSameDayAs: startOfEventDay) {
+            return CountdownResult(days: 0, hours: 0, minutes: 0, seconds: 0, isGameDay: true)
+        }
+
+        let components = calendar.dateComponents([.day], from: startOfToday, to: startOfEventDay)
+        let days = components.day ?? 0
+        return CountdownResult(days: max(0, days), hours: 0, minutes: 0, seconds: 0, isGameDay: false)
     }
 }
